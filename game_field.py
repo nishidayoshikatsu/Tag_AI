@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 import sys
 
-import action                   # action.pyをインポート
+#import action                   # action.pyをインポート
 
 ### スクリーンのパラメータ ###
 SCREEN_SIZE = (500, 500)        # スクリーンサイズ(幅、高さ)
@@ -40,17 +40,19 @@ def field_coordinate_set():
     return ELEMENT_COORDINATE
 
 if __name__ == "__main__":
+
     while True:
         agent = input("鬼(0)と人(1)のどちらを操作しますか？> ")
         if agent == '鬼' or agent == '0':
             agent = "demon"
+            #operation_position = DEMON_AGENT_POSITION
             break
         elif agent == '人' or agent == '1':
             agent = "human"
+            #operation_position = HUMAN_AGENT_POSITION
             break
         else:
             print("ちゃんと選べよおお")
-
 
     pygame.init()               #　初期化
     screen = pygame.display.set_mode(SCREEN_SIZE) # スクリーンの初期化
@@ -75,11 +77,12 @@ if __name__ == "__main__":
     GOAL_POSITION = coordinate[3][0]                            # ゴールの座標を指定(固定)
     ### end ###
 
+
     # ゲームループ
     while True:
         screen.fill(BACK_COLOR)     # surfaceを1色で塗りつぶす
 
-        ### 4×4のフィールドを描画
+        ### 4×4のフィールドを描画 ###
         for i in range(4):
             for j in range(4):
                 pygame.draw.rect(screen, RECT_COLOR, Rect(coordinate[i][j][0], coordinate[i][j][1], RECT_SIZE, RECT_SIZE), LINE_WIDTH)
@@ -132,7 +135,14 @@ if __name__ == "__main__":
                         HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
                     else:
                         print("これ以上下には行けないよ")
-                if HUMAN_AGENT_POSITION == GOAL_POSITION:                   # ゴールについた時
+                if agent == "human" and HUMAN_AGENT_POSITION == GOAL_POSITION:                   # ゴールについた時
                     print("goal!!")
-                    pygame.quit()
-                    sys.exit()
+                    print("人の勝ち！！")
+                    if event.key == K_KP_ENTER:
+                        pygame.quit()
+                        sys.exit()
+                if HUMAN_AGENT_POSITION == DEMON_AGENT_POSITION:
+                    print("鬼の勝ち！！")
+                    if event.key == K_KP_ENTER:
+                        pygame.quit()
+                        sys.exit()
