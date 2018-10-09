@@ -2,6 +2,8 @@ import pygame
 from pygame.locals import *
 import sys
 
+import action                   # action.pyをインポート
+
 ### スクリーンのパラメータ ###
 SCREEN_SIZE = (500, 500)        # スクリーンサイズ(幅、高さ)
 BACK_COLOR = (255, 255, 255)    # 背景色をRGBで指定
@@ -15,7 +17,7 @@ LINE_WIDTH = 1                  # 矩形の線の太さを指定
 RECT_FIRST_POSITION = 50        # 矩形の初期位置(左上)
 ### end ###
 
-def field_set():
+def field_coordinate_set():
     ### グローバル変数宣言 ###
     global RECT_COLOR
     global RECT_SIZE
@@ -38,6 +40,17 @@ def field_set():
     return ELEMENT_COORDINATE
 
 if __name__ == "__main__":
+    while True:
+        agent = input("鬼(0)と人(1)のどちらを操作しますか？> ")
+        if agent == '鬼' or agent == '0':
+            agent = "demon"
+            break
+        elif agent == '人' or agent == '1':
+            agent = "human"
+            break
+        else:
+            print("ちゃんと選べよおお")
+
 
     pygame.init()               #　初期化
     screen = pygame.display.set_mode(SCREEN_SIZE) # スクリーンの初期化
@@ -52,12 +65,13 @@ if __name__ == "__main__":
     goal = pygame.transform.smoothscale(goal, (RECT_SIZE, RECT_SIZE))
     ### end ###
 
-    coordinate = field_set()    # 各マスの左上の座標を生成
+    coordinate = field_coordinate_set()    # 各マスの左上の座標を生成
 
     ### 各要素の座標を選択 ###
     HUMAN_AGENT_POSITION = coordinate[0][3]                     # 人の座標を指定(移動可能)
     DEMON_AGENT_POSITION = coordinate[1][2]                     # 鬼の座標を指定(移動可能)
-    OBSTACLE_POSITION = (coordinate[2][2][0], coordinate[2][2][1], RECT_SIZE, RECT_SIZE)    # 障害物の座標を指定(固定)
+    OBSTACLE_POSITION_1 = (coordinate[2][2][0], coordinate[2][2][1], RECT_SIZE, RECT_SIZE)    # 障害物の座標を指定(固定)
+    OBSTACLE_POSITION_2 = coordinate[2][2]
     GOAL_POSITION = coordinate[3][0]                            # ゴールの座標を指定(固定)
     ### end ###
 
@@ -65,38 +79,16 @@ if __name__ == "__main__":
     while True:
         screen.fill(BACK_COLOR)     # surfaceを1色で塗りつぶす
 
+        ### 4×4のフィールドを描画
         for i in range(4):
             for j in range(4):
                 pygame.draw.rect(screen, RECT_COLOR, Rect(coordinate[i][j][0], coordinate[i][j][1], RECT_SIZE, RECT_SIZE), LINE_WIDTH)
-
-        '''
-        ### キーボード入力 ###
-        #pygame.event.pump()
-        pressed_key = pygame.key.get_pressed()
-        if pressed_key[K_w]:
-            HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-            HUMAN_AGENT_POSITION[1] -= RECT_SIZE
-            HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
-            #Rect.move_ip(HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] + RECT_SIZE)
-        if pressed_key[K_a]:
-            HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-            HUMAN_AGENT_POSITION[0] -= RECT_SIZE
-            HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
-        if pressed_key[K_s]:
-            HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-            HUMAN_AGENT_POSITION[1] += RECT_SIZE
-            HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
-        if pressed_key[K_d]:
-            HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-            HUMAN_AGENT_POSITION[0] += RECT_SIZE
-            HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
         ### end ###
-        '''
 
         ### 各要素をスクリーンに表示 ###
         screen.blit(human_agent, HUMAN_AGENT_POSITION)                                          # 人の画像を表示
         screen.blit(demon_agent, DEMON_AGENT_POSITION)                                          # 鬼の画像を表示
-        screen.fill(OBSTACLE_COLOR, OBSTACLE_POSITION)                                          # 障害物を黒で表示
+        screen.fill(OBSTACLE_COLOR, OBSTACLE_POSITION_1)                                        # 障害物を黒で表示
         screen.blit(goal, GOAL_POSITION)                                                        # ゴールの画像を表示
         ### end ###
 
@@ -111,20 +103,36 @@ if __name__ == "__main__":
                 if event.key == K_ESCAPE:   # Escキーが押されたとき
                     pygame.quit()
                     sys.exit()
-                if event.key == K_LEFT:
-                    HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-                    HUMAN_AGENT_POSITION[0] -= RECT_SIZE
-                    HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
-                    #Rect.move_ip(HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] + RECT_SIZE)
-                if event.key == K_RIGHT:
-                    HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-                    HUMAN_AGENT_POSITION[0] += RECT_SIZE
-                    HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
-                if event.key == K_UP:
-                    HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-                    HUMAN_AGENT_POSITION[1] -= RECT_SIZE
-                    HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
-                if event.key == K_DOWN:
-                    HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-                    HUMAN_AGENT_POSITION[1] += RECT_SIZE
-                    HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                if event.key == K_a:    # 左方向に行く
+                    if HUMAN_AGENT_POSITION[0] >= coordinate[0][1][0] and (HUMAN_AGENT_POSITION[0] - RECT_SIZE, HUMAN_AGENT_POSITION[1]) != OBSTACLE_POSITION_2:      # 左端のマスにいない時
+                        HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+                        HUMAN_AGENT_POSITION[0] -= RECT_SIZE
+                        HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                        #Rect.move_ip(HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] + RECT_SIZE)
+                    else:
+                        print("これ以上左には行けないよ")
+                if event.key == K_d:    # 右方向に行く
+                    if HUMAN_AGENT_POSITION[0] <= coordinate[0][2][0] and (HUMAN_AGENT_POSITION[0] + RECT_SIZE, HUMAN_AGENT_POSITION[1]) != OBSTACLE_POSITION_2:      # 右端のマスにいない時
+                        HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+                        HUMAN_AGENT_POSITION[0] += RECT_SIZE
+                        HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                    else:
+                        print("これ以上右には行けないよ")
+                if event.key == K_w:    # 上方向に行く
+                    if HUMAN_AGENT_POSITION[1] >= coordinate[1][0][1] and (HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] - RECT_SIZE) != OBSTACLE_POSITION_2:      # 上端のマスにいない時
+                        HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+                        HUMAN_AGENT_POSITION[1] -= RECT_SIZE
+                        HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                    else:
+                        print("これ以上上には行けないよ")
+                if event.key == K_s:    # 下方向に行く
+                    if HUMAN_AGENT_POSITION[1] <= coordinate[2][0][1] and (HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] + RECT_SIZE) != OBSTACLE_POSITION_2:      # 下端のマスにいない時
+                        HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+                        HUMAN_AGENT_POSITION[1] += RECT_SIZE
+                        HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                    else:
+                        print("これ以上下には行けないよ")
+                if HUMAN_AGENT_POSITION == GOAL_POSITION:                   # ゴールについた時
+                    print("goal!!")
+                    pygame.quit()
+                    sys.exit()
