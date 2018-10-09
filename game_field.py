@@ -6,14 +6,13 @@ import sys
 SCREEN_SIZE = (500, 500)        # スクリーンサイズ(幅、高さ)
 BACK_COLOR = (255, 255, 255)    # 背景色をRGBで指定
 ### end ###
-    
+
 ### 矩形関連のパラメータ ###
 OBSTACLE_COLOR = (0, 0, 0)
 RECT_COLOR = (0, 0, 0)          # 矩形の色をRGBで指定
 RECT_SIZE = 100                 # 矩形の大きさを指定
 LINE_WIDTH = 1                  # 矩形の線の太さを指定
 RECT_FIRST_POSITION = 50        # 矩形の初期位置(左上)
-#ELEMENT_FIRST_POSITION = RECT_FIRST_POSITION + (RECT_SIZE / 2)     #中心座標の計算(無駄無駄無駄ア！)
 ### end ###
 
 def field_set():
@@ -22,8 +21,7 @@ def field_set():
     global RECT_SIZE
     global LINE_WIDTH
     global RECT_FIRST_POSITION
-    #global ELEMENT_FIRST_POSITION
-
+    ### end ###
     ELEMENT_COORDINATE = []
     for i in range(4):
         imaginary_array = []
@@ -31,13 +29,9 @@ def field_set():
             ### 図形の描画に必要なパラメータの計算 ###
             RECT_POSITION_X = RECT_FIRST_POSITION + 100 * j
             RECT_POSITION_Y = RECT_FIRST_POSITION + 100 * i
-            #ELEMENT_POSITION_X = ELEMENT_FIRST_POSITION + 100 * j
-            #ELEMENT_POSITION_Y = ELEMENT_FIRST_POSITION + 100 * i
             ### end ###
 
-            pygame.draw.rect(screen, RECT_COLOR, Rect(RECT_POSITION_X, RECT_POSITION_Y, RECT_SIZE, RECT_SIZE), LINE_WIDTH)    # surfaceに四角形を描画
             coordinate = (RECT_POSITION_X, RECT_POSITION_Y)
-            #pygame.draw.line(screen, RECT_COLOR, pivot, pivot, 2)       #中心の座標が出ているか確認(無駄無駄無駄ア！)
             imaginary_array.append(coordinate)               #二次元のリストにするための仮のリスト
         ELEMENT_COORDINATE.append(imaginary_array)      #二次元のリストで取得
 
@@ -58,17 +52,47 @@ if __name__ == "__main__":
     goal = pygame.transform.smoothscale(goal, (RECT_SIZE, RECT_SIZE))
     ### end ###
 
+    coordinate = field_set()    # 各マスの左上の座標を生成
+
+    ### 各要素の座標を選択 ###
+    HUMAN_AGENT_POSITION = coordinate[0][3]                     # 人の座標を指定(移動可能)
+    DEMON_AGENT_POSITION = coordinate[1][2]                     # 鬼の座標を指定(移動可能)
+    OBSTACLE_POSITION = (coordinate[2][2][0], coordinate[2][2][1], RECT_SIZE, RECT_SIZE)    # 障害物の座標を指定(固定)
+    GOAL_POSITION = coordinate[3][0]                            # ゴールの座標を指定(固定)
+    ### end ###
+
     # ゲームループ
     while True:
         screen.fill(BACK_COLOR)     # surfaceを1色で塗りつぶす
-        coordinate = field_set()    # ４×4のマスを生成し、各マスの左上の座標を返す
 
-        ### 各要素の座標を選択 ###
-        HUMAN_AGENT_POSITION = (coordinate[0][3][0], coordinate[0][3][1])                       # 人の座標を指定
-        DEMON_AGENT_POSITION = (coordinate[1][2][0], coordinate[1][2][1])                       # 鬼の座標を指定
-        OBSTACLE_POSITION = (coordinate[2][2][0], coordinate[2][2][1], RECT_SIZE, RECT_SIZE)    # 障害物の座標を指定
-        GOAL_POSITION = (coordinate[3][0][0], coordinate[3][0][1])                              # ゴールの座標を指定
+        for i in range(4):
+            for j in range(4):
+                pygame.draw.rect(screen, RECT_COLOR, Rect(coordinate[i][j][0], coordinate[i][j][1], RECT_SIZE, RECT_SIZE), LINE_WIDTH)
+
+        '''
+        ### キーボード入力 ###
+        #pygame.event.pump()
+        pressed_key = pygame.key.get_pressed()
+        if pressed_key[K_w]:
+            HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+            HUMAN_AGENT_POSITION[1] -= RECT_SIZE
+            HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+            #Rect.move_ip(HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] + RECT_SIZE)
+        if pressed_key[K_a]:
+            HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+            HUMAN_AGENT_POSITION[0] -= RECT_SIZE
+            HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+        if pressed_key[K_s]:
+            HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+            HUMAN_AGENT_POSITION[1] += RECT_SIZE
+            HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+        if pressed_key[K_d]:
+            HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+            HUMAN_AGENT_POSITION[0] += RECT_SIZE
+            HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
         ### end ###
+        '''
+
         ### 各要素をスクリーンに表示 ###
         screen.blit(human_agent, HUMAN_AGENT_POSITION)                                          # 人の画像を表示
         screen.blit(demon_agent, DEMON_AGENT_POSITION)                                          # 鬼の画像を表示
@@ -76,9 +100,31 @@ if __name__ == "__main__":
         screen.blit(goal, GOAL_POSITION)                                                        # ゴールの画像を表示
         ### end ###
 
+
         pygame.display.update() # スクリーンの更新
 
         for event in pygame.event.get(): # イベント処理
             if event.type == QUIT:     # 終了イベント
                 pygame.quit()
                 sys.exit()
+            if event.type == KEYDOWN:       # キーを押したとき
+                if event.key == K_ESCAPE:   # Escキーが押されたとき
+                    pygame.quit()
+                    sys.exit()
+                if event.key == K_LEFT:
+                    HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+                    HUMAN_AGENT_POSITION[0] -= RECT_SIZE
+                    HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                    #Rect.move_ip(HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] + RECT_SIZE)
+                if event.key == K_RIGHT:
+                    HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+                    HUMAN_AGENT_POSITION[0] += RECT_SIZE
+                    HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                if event.key == K_UP:
+                    HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+                    HUMAN_AGENT_POSITION[1] -= RECT_SIZE
+                    HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                if event.key == K_DOWN:
+                    HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
+                    HUMAN_AGENT_POSITION[1] += RECT_SIZE
+                    HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
