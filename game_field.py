@@ -32,27 +32,13 @@ def field_coordinate_set():
             RECT_POSITION_X = RECT_FIRST_POSITION + 100 * j
             RECT_POSITION_Y = RECT_FIRST_POSITION + 100 * i
             ### end ###
-
             coordinate = (RECT_POSITION_X, RECT_POSITION_Y)
-            imaginary_array.append(coordinate)               #二次元のリストにするための仮のリスト
-        ELEMENT_COORDINATE.append(imaginary_array)      #二次元のリストで取得
+            imaginary_array.append(coordinate)          # 二次元のリストにするための仮のリスト
+        ELEMENT_COORDINATE.append(imaginary_array)      # 二次元のリストで取得
 
     return ELEMENT_COORDINATE
 
 if __name__ == "__main__":
-
-    while True:
-        agent = input("鬼(0)と人(1)のどちらを操作しますか？> ")
-        if agent == '鬼' or agent == '0':
-            agent = "demon"
-            #operation_position = DEMON_AGENT_POSITION
-            break
-        elif agent == '人' or agent == '1':
-            agent = "human"
-            #operation_position = HUMAN_AGENT_POSITION
-            break
-        else:
-            print("ちゃんと選べよおお")
 
     pygame.init()               #　初期化
     screen = pygame.display.set_mode(SCREEN_SIZE) # スクリーンの初期化
@@ -77,6 +63,22 @@ if __name__ == "__main__":
     GOAL_POSITION = coordinate[3][0]                            # ゴールの座標を指定(固定)
     ### end ###
 
+    while True:
+        agent = input("鬼(0)と人(1)のどちらを操作しますか？> ")
+        if agent == '鬼' or agent == '0':
+            agent = "demon"
+            ally = DEMON_AGENT_POSITION
+            enemy = HUMAN_AGENT_POSITION
+            #operation_position = DEMON_AGENT_POSITION
+            break
+        elif agent == '人' or agent == '1':
+            agent = "human"
+            ally = HUMAN_AGENT_POSITION
+            enemy = HUMAN_AGENT_POSITION
+            #operation_position = HUMAN_AGENT_POSITION
+            break
+        else:
+            print("ちゃんと選べよおお")
 
     # ゲームループ
     while True:
@@ -107,34 +109,38 @@ if __name__ == "__main__":
                     pygame.quit()
                     sys.exit()
                 if event.key == K_a:    # 左方向に行く
-                    if HUMAN_AGENT_POSITION[0] >= coordinate[0][1][0] and (HUMAN_AGENT_POSITION[0] - RECT_SIZE, HUMAN_AGENT_POSITION[1]) != OBSTACLE_POSITION_2:      # 左端のマスにいない時
-                        HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-                        HUMAN_AGENT_POSITION[0] -= RECT_SIZE
-                        HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                    if ally[0] >= coordinate[0][1][0] and (ally[0] - RECT_SIZE, ally[1]) != OBSTACLE_POSITION_2:      # 左端のマスにいない時
+                        ally = list(ally)
+                        ally[0] -= RECT_SIZE
+                        ally = tuple(ally)
                         #Rect.move_ip(HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] + RECT_SIZE)
                     else:
                         print("これ以上左には行けないよ")
                 if event.key == K_d:    # 右方向に行く
-                    if HUMAN_AGENT_POSITION[0] <= coordinate[0][2][0] and (HUMAN_AGENT_POSITION[0] + RECT_SIZE, HUMAN_AGENT_POSITION[1]) != OBSTACLE_POSITION_2:      # 右端のマスにいない時
-                        HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-                        HUMAN_AGENT_POSITION[0] += RECT_SIZE
-                        HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                    if ally[0] <= coordinate[0][2][0] and (ally[0] + RECT_SIZE, ally[1]) != OBSTACLE_POSITION_2:      # 右端のマスにいない時
+                        ally = list(ally)
+                        ally[0] += RECT_SIZE
+                        ally = tuple(ally)
                     else:
                         print("これ以上右には行けないよ")
                 if event.key == K_w:    # 上方向に行く
-                    if HUMAN_AGENT_POSITION[1] >= coordinate[1][0][1] and (HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] - RECT_SIZE) != OBSTACLE_POSITION_2:      # 上端のマスにいない時
-                        HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-                        HUMAN_AGENT_POSITION[1] -= RECT_SIZE
-                        HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                    if ally[1] >= coordinate[1][0][1] and (ally[0], ally[1] - RECT_SIZE) != OBSTACLE_POSITION_2:      # 上端のマスにいない時
+                        ally = list(ally)
+                        ally[1] -= RECT_SIZE
+                        ally = tuple(ally)
                     else:
                         print("これ以上上には行けないよ")
                 if event.key == K_s:    # 下方向に行く
-                    if HUMAN_AGENT_POSITION[1] <= coordinate[2][0][1] and (HUMAN_AGENT_POSITION[0], HUMAN_AGENT_POSITION[1] + RECT_SIZE) != OBSTACLE_POSITION_2:      # 下端のマスにいない時
-                        HUMAN_AGENT_POSITION = list(HUMAN_AGENT_POSITION)
-                        HUMAN_AGENT_POSITION[1] += RECT_SIZE
-                        HUMAN_AGENT_POSITION = tuple(HUMAN_AGENT_POSITION)
+                    if ally[1] <= coordinate[2][0][1] and (ally[0], ally[1] + RECT_SIZE) != OBSTACLE_POSITION_2:      # 下端のマスにいない時
+                        ally = list(ally)
+                        ally[1] += RECT_SIZE
+                        ally = tuple(ally)
                     else:
                         print("これ以上下には行けないよ")
+                if agent == "human":
+                    HUMAN_AGENT_POSITION = ally
+                else:
+                    DEMON_AGENT_POSITION = ally
                 if agent == "human" and HUMAN_AGENT_POSITION == GOAL_POSITION:                   # ゴールについた時
                     print("goal!!")
                     print("人の勝ち！！")
