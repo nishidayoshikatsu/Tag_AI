@@ -30,7 +30,7 @@ theta_0 = np.array([[np.nan, 1, 1, np.nan, 1],  # coordinate[0][0]
                     [1, np.nan, 1, 1, 1],  # coordinate[1][3]
                     [1, 1, 1, np.nan, 1],  # coordinate[2][0]
                     [1, np.nan, 1, 1, 1],  # coordinate[2][1] ※coordinate[2][2]は障害物だから方策なし
-                    [1, np.nan, 1, 1, 1],   # 本来ない
+                    [np.nan, np.nan, np.nan, np.nan, np.nan],   # 本来ない
                     [1, np.nan, 1, np.nan, 1],  # coordinate[2][3] ※coordinate[3][0]はゴールだから方策なし
                     [1, 1, np.nan, 1, 1],  # coordinate[3][1]
                     [1, 1, np.nan, 1, 1],  # coordinate[3][2]
@@ -58,25 +58,38 @@ pi_0 = simple_convert_into_pi_from_theta(theta_0)
 def get_action(s, Q, epsilon, pi_0):
     direction = ["up", "right", "down", "left", "stop"]
 
-    # 行動を決める
-    if np.random.rand() < epsilon:
-        # εの確率でランダムに動く
-        next_direction = np.random.choice(direction, p=pi_0[s, :])
-    else:
-        # Qの最大値の行動を採用する
-        next_direction = direction[np.nanargmax(Q[s, :])]
+    while True:
+        # 行動を決める
+        if np.random.rand() < epsilon:
+            # εの確率でランダムに動く
+            next_direction = np.random.choice(direction, p=pi_0[s, :])
 
-    # 行動をindexに
-    if next_direction == "up":
-        action = 0
-    elif next_direction == "right":
-        action = 1
-    elif next_direction == "down":
-        action = 2
-    elif next_direction == "left":
-        action = 3
-    else:
-        action = 4
+        else:
+            # Qの最大値の行動を採用する
+            next_direction = direction[np.nanargmax(Q[s, :])]
+
+        # 行動をindexに
+        if next_direction == "up":
+            action = 0
+        elif next_direction == "right":
+            action = 1
+        elif next_direction == "down":
+            action = 2
+        elif next_direction == "left":
+            action = 3
+        else:
+            action = 4
+
+        if next_direction == "up" and (s-4) != 10:
+            break
+        elif next_direction == "right" and (s+1) != 10:
+            break
+        elif next_direction == "down" and (s+4) != 10:
+            break
+        elif next_direction == "left" and (s-1) != 10:
+            break
+        elif next_direction == "stop":
+            break
 
     return action
 
@@ -113,7 +126,7 @@ def Q_learning(s, a, r, s_next, Q, eta, gamma):
 
 
 def human_Q(Q, epsilon, eta, gamma, pi):
-    s = 0  # スタート地点
+    s = 3  # スタート地点
     a = a_next = get_action(s, Q, epsilon, pi)  # 初期の行動
     s_a_history = [[0, np.nan]]  # エージェントの移動を記録するリスト
 
@@ -130,8 +143,8 @@ def human_Q(Q, epsilon, eta, gamma, pi):
         # 次の状態を代入。行動はまだ分からないのでnanにしておく
 
         # 報酬を与え,　次の行動を求めます
-        if s_next == 8:
-            r = 1  # ゴールにたどり着いたなら報酬を与える
+        if s_next == 12:
+            r = 100  # ゴールにたどり着いたなら報酬を与える
             a_next = np.nan
         else:
             r = 0
@@ -148,7 +161,44 @@ def human_Q(Q, epsilon, eta, gamma, pi):
             s = s_next
 
     return [s_a_history, Q]
+'''
+def demon_Q(Q, epsilon, eta, gamma, pi):
+    s = 6  # スタート地点
+    a = a_next = get_action(s, Q, epsilon, pi)  # 初期の行動
+    s_a_history = [[0, np.nan]]  # エージェントの移動を記録するリスト
 
+    while True:  # ゴールするまでループ
+        a = a_next  # 行動更新
+
+        s_a_history[-1][1] = a
+        # 現在の状態（つまり一番最後なのでindex=-1）に行動を代入
+
+        s_next = get_s_next(s, a, Q, epsilon, pi)
+        # 次の状態を格納
+
+        s_a_history.append([s_next, np.nan])
+        # 次の状態を代入。行動はまだ分からないのでnanにしておく
+
+        # 報酬を与え,　次の行動を求めます
+        if s_next == 12:
+            r = 100  # ゴールにたどり着いたなら報酬を与える
+            a_next = np.nan
+        else:
+            r = 0
+            a_next = get_action(s_next, Q, epsilon, pi)
+            # 次の行動a_nextを求めます。
+
+        # 価値関数を更新
+        Q = Q_learning(s, a, r, s_next, Q, eta, gamma)
+
+        # 終了判定
+        if s_next == 8:  # ゴール地点なら終了
+            break
+        else:
+            s = s_next
+
+    return [s_a_history, Q]
+'''
 
 def Q_learning_exe(Q):
     global pi_0
@@ -237,11 +287,11 @@ if __name__ == "__main__":
     #state_value = coordinate_change(coordinate)
 
     ### 各要素の座標を選択 ###
-    HUMAN_AGENT_POSITION = coordinate[0][3]                     # 人の座標を指定(移動可能)
-    DEMON_AGENT_POSITION = coordinate[1][2]                     # 鬼の座標を指定(移動可能)
-    OBSTACLE_POSITION_1 = (coordinate[2][2][0], coordinate[2][2][1], RECT_SIZE, RECT_SIZE)    # 障害物の座標を指定(固定)
-    OBSTACLE_POSITION_2 = coordinate[2][2]
-    GOAL_POSITION = coordinate[3][0]                            # ゴールの座標を指定(固定)
+    HUMAN_AGENT_POSITION = coordinate[0][0]                     # 人の座標を指定(移動可能)
+    DEMON_AGENT_POSITION = coordinate[1][1]                     # 鬼の座標を指定(移動可能)
+    OBSTACLE_POSITION_1 = (coordinate[2][1][0], coordinate[2][1][1], RECT_SIZE, RECT_SIZE)    # 障害物の座標を指定(固定)
+    OBSTACLE_POSITION_2 = coordinate[2][1]
+    GOAL_POSITION = coordinate[3][3]                            # ゴールの座標を指定(固定)
     ### end ###
         
 
@@ -253,7 +303,6 @@ if __name__ == "__main__":
 
     q_value = Q_learning_exe(Q)
     print("q_value: " + str(q_value))
-    print(q_value[-1])
 
     '''
     while True:

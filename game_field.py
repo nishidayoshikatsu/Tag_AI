@@ -56,11 +56,11 @@ if __name__ == "__main__":
     coordinate = field_coordinate_set()    # 各マスの左上の座標を生成
 
     ### 各要素の座標を選択 ###
-    HUMAN_AGENT_POSITION = coordinate[0][3]                     # 人の座標を指定(移動可能)
-    DEMON_AGENT_POSITION = coordinate[1][2]                     # 鬼の座標を指定(移動可能)
-    OBSTACLE_POSITION_1 = (coordinate[2][2][0], coordinate[2][2][1], RECT_SIZE, RECT_SIZE)    # 障害物の座標を指定(固定)
-    OBSTACLE_POSITION_2 = coordinate[2][2]
-    GOAL_POSITION = coordinate[3][0]                            # ゴールの座標を指定(固定)
+    HUMAN_AGENT_POSITION = coordinate[0][0]                     # 人の座標を指定(移動可能)
+    DEMON_AGENT_POSITION = coordinate[1][1]                     # 鬼の座標を指定(移動可能)
+    OBSTACLE_POSITION_1 = (coordinate[2][1][0], coordinate[2][1][1], RECT_SIZE, RECT_SIZE)    # 障害物の座標を指定(固定)
+    OBSTACLE_POSITION_2 = coordinate[2][1]
+    GOAL_POSITION = coordinate[3][3]                            # ゴールの座標を指定(固定)
     ### end ###
 
     while True:
@@ -79,7 +79,7 @@ if __name__ == "__main__":
             break
         else:
             print("ちゃんと選べよおお")
-
+    
     # ゲームループ
     while True:
         screen.fill(BACK_COLOR)     # surfaceを1色で塗りつぶす
